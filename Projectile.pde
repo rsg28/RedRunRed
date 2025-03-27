@@ -22,6 +22,8 @@ class Projectile {
   }
   
   boolean isOffScreen() {
-    return (x < 0 || x > width);
-  }
+  // Convert to screen coordinates to check if off visible screen
+  PVector screenPos = worldToScreen(x, y);
+  return (screenPos.x < -size || screenPos.x > width + size);
+}
 }

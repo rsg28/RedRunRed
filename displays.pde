@@ -63,10 +63,8 @@ void displayGameOver() {
   text("Press ENTER to try again", width/2, height/2 + 80);
 }
 
-// Display controls on game screen
 void displayControls() {
-  
-  // Display lives as text
+  // Display lives as text - uses screen coordinates (not affected by camera)
   fill(255, 0, 0);
   textSize(18);
   textAlign(LEFT);
@@ -76,43 +74,5 @@ void displayControls() {
   fill(255, 255, 0);
   textSize(18);
   textAlign(LEFT);
-  text("Cupcakes: " + player.projectilesLeft + "/10", 30, 80 );
-  
-}
-
-
-void resetGame() {
-  gameState = GAME_PLAY;
-  player = new Player(100, GROUND_LEVEL);
-  player.lives = 3;
-  player.projectilesLeft = 10;
-  
-  // Create a completely new enemies ArrayList
-  enemies = new ArrayList<BasicEnemy>();
-  
-
-  // Create BasicEnemy objects 
-  BasicEnemy enemy1 = new BasicEnemy(400, GROUND_LEVEL);
- 
-  BasicEnemy enemy2 = new BasicEnemy(600, GROUND_LEVEL);
-
-  // Add the enemies to the ArrayList
-  enemies.add(enemy1);
-  enemies.add(enemy2);
-  
-  projectiles = new ArrayList<Projectile>();
-  powerUps = new ArrayList<PowerUp>();
-  powerUps.add(new AmmoPowerUp(platformX + platformWidth/2, platformY - 20));
-  
-}
-
-// Start a new game
-void startGame() {
-  gameState = GAME_PLAY;
-  resetGame();
-}
-
-// Update the game state for game over
-void setGameOver() {
-  gameState = GAME_OVER;
+  text("Cupcakes: " + player.projectilesLeft + "/10", 30, 80);
 }
