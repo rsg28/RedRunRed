@@ -2,6 +2,11 @@
 // I added a powerup so that the player can have extra lives on the game
 // I added a camera system that follows the player
 // I added checkpoints so the player respawns at the last checkpoint on death
+// I added sprite animations for the player character
+
+// Asset management
+boolean assetsLoaded = false;
+PImage[] playerAssets = new PImage[6]; // Array to hold all player assets
 
 // Game constants
 final int GRAVITY = 1;
@@ -81,11 +86,44 @@ float[][] additionalLadders = {
   {1900, GROUND_LEVEL - 250, 40, 250}
 };
 
+// Preload assets function
+void preload() {
+  // Create the assets directory if it doesn't exist
+  File assetsDir = new File(dataPath("assets"));
+  if (!assetsDir.exists()) {
+    assetsDir.mkdir();
+  }
+  
+  try {
+    // Load all player assets
+    playerAssets[0] = loadImage("assets/Standing.png");
+    playerAssets[1] = loadImage("assets/Walk.png");
+    playerAssets[2] = loadImage("assets/Walk2.png");
+    playerAssets[3] = loadImage("assets/Jump.png");
+    playerAssets[4] = loadImage("assets/Toss.png");
+    playerAssets[5] = loadImage("assets/Hit.png");
+    
+    // Set the flag indicating all assets are loaded
+    assetsLoaded = true;
+  } catch (Exception e) {
+    println("Error loading assets: " + e.getMessage());
+    assetsLoaded = false;
+  }
+}
+
 void setup() {
   size(800, 600);
   
+  // Load assets first
+  preload();
+  
   // Initialize game objects
   player = new Player(100, GROUND_LEVEL);
+  
+  // Add a check for assets
+  if (!assetsLoaded) {
+    println("Warning: Some assets failed to load. Using fallback graphics.");
+  }
   
   // Create a enemies ArrayList
   enemies = new ArrayList<BasicEnemy>();
@@ -121,7 +159,13 @@ void setup() {
 }
 
 void draw() {
-  // displays 
+  // Display asset error if assets failed to load
+  if (!assetsLoaded && gameState == GAME_INTRO) {
+    displayAssetError();
+    return;
+  }
+  
+  // Display based on game state
   if (gameState == GAME_INTRO) {
     displayIntro();
   } 
@@ -134,6 +178,19 @@ void draw() {
   else {
     playGame();
   }
+}
+
+void displayAssetError() {
+  background(0);
+  fill(255, 0, 0);
+  textSize(24);
+  textAlign(CENTER, CENTER);
+  text("ERROR: Could not load game assets.", width/2, height/2 - 40);
+  text("Make sure the assets folder exists and contains:", width/2, height/2);
+  text("Standing.png, Walk.png, Walk2.png, Jump.png, Toss.png, Hit.png", width/2, height/2 + 40);
+  
+  textSize(16);
+  text("Press ENTER to continue with simplified graphics", width/2, height/2 + 100);
 }
 
 void playGame() {
@@ -246,6 +303,7 @@ void playGame() {
     
     // Check collision with player
     if (enemy.collidesWith(player)) {
+      player.getHit(); // Trigger hit animation
       player.loseLife();
     }
     

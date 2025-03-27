@@ -49,6 +49,7 @@ void handleKeyPressed() {
     } else if (key == ' ') {
       // Toss projectile only if player has projectiles left
       if (player.projectilesLeft > 0) {
+        player.toss(); // Trigger toss animation
         projectiles.add(new Projectile(player.x, player.y, player.facingRight));
         player.projectilesLeft--;
         

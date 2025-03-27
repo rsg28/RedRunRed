@@ -12,9 +12,32 @@ class Player {
   boolean isNearLadder = false;
   boolean isClimbing = false;
   
+  // Animation variables
+  PImage standingImg;
+  PImage walkImg;
+  PImage walk2Img;
+  PImage jumpImg;
+  PImage tossImg;
+  PImage hitImg;
+  int animationFrame = 0;
+  int frameCounter = 0;
+  boolean isTossing = false;
+  boolean isHit = false;
+  int tossTimer = 0;
+  int hitTimer = 0;
+  int walkAnimationSpeed = 8; // frames between walk animation changes
+  
   Player(float x, float y) {
     this.x = x;
     this.y = y;
+    
+    // Load player assets
+    standingImg = loadImage("assets/Standing.png");
+    walkImg = loadImage("assets/Walk.png");
+    walk2Img = loadImage("assets/Walk2.png");
+    jumpImg = loadImage("assets/Jump.png");
+    tossImg = loadImage("assets/Toss.png");
+    hitImg = loadImage("assets/Hit.png");
   }
   
   void update() {
@@ -142,31 +165,94 @@ class Player {
     if (y > height) {
       loseLife();
     }
+    
+    // Update animation states
+    updateAnimationState();
+  }
+  
+  void updateAnimationState() {
+    // Update walk animation frame counter
+    if (velX != 0) {
+      frameCounter++;
+      if (frameCounter >= walkAnimationSpeed) {
+        animationFrame = (animationFrame + 1) % 2; // Switch between 0 and 1
+        frameCounter = 0;
+      }
+    } else {
+      // Reset to standing when not moving
+      animationFrame = 0;
+      frameCounter = 0;
+    }
+    
+    // Update toss animation timer
+    if (isTossing) {
+      tossTimer--;
+      if (tossTimer <= 0) {
+        isTossing = false;
+      }
+    }
+    
+    // Update hit animation timer
+    if (isHit) {
+      hitTimer--;
+      if (hitTimer <= 0) {
+        isHit = false;
+      }
+    }
   }
   
   void display() {
-    fill(255, 0, 0);
-    noStroke();
+    pushMatrix();
+    translate(x, y);
     
-    if (facingRight) {
-      triangle(
-        x, y,
-        x, y + size,
-        x + size, y + size/2
-      );
-    } else {
-      triangle(
-        x + size, y,
-        x + size, y + size,
-        x, y + size/2
-      );
+    // Flip if facing left
+    if (!facingRight) {
+      scale(-1, 1);
+      translate(-size, 0);
     }
+    
+    // Determine which sprite to display based on state
+    PImage currentSprite;
+    
+    if (isHit) {
+      // Hit animation takes precedence
+      currentSprite = hitImg;
+    } else if (isTossing) {
+      // Tossing animation
+      currentSprite = tossImg;
+    } else if (velY < 0 || (!isOnGround() && !isClimbing)) {
+      // Jumping/falling
+      currentSprite = jumpImg;
+    } else if (velX != 0) {
+      // Walking animation
+      currentSprite = (animationFrame == 0) ? walkImg : walk2Img;
+    } else {
+      // Standing still
+      currentSprite = standingImg;
+    }
+    
+    // Draw the sprite
+    image(currentSprite, 0, 0, size, size);
+    
+    popMatrix();
   }
   
   void jump() {
     if (isOnGround()) {
       velY = JUMP_FORCE;
     }
+  }
+  
+  void toss() {
+    // Set tossing animation
+    isTossing = true;
+    tossTimer = 15; // Animation lasts for 15 frames
+  }
+  
+  void getHit() {
+    // Set hit animation
+    isHit = true;
+    hitTimer = 30; // Animation lasts for 30 frames
   }
   
   boolean isOnGround() {
@@ -216,6 +302,9 @@ class Player {
   // reset to start
   void loseLife() {
     lives--;
+    
+    // Trigger hit animation
+    getHit();
     
     // Respawn at the current checkpoint if one is active
     if (currentCheckpoint != null && currentCheckpoint.isReached) {
