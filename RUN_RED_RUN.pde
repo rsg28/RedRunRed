@@ -1,6 +1,7 @@
 // NEW FEATURES
 // I added a powerup so that the player can have extra lives on the game
 // I added a camera system that follows the player
+// I added checkpoints so the player respawns at the last checkpoint on death
 
 // Game constants
 final int GRAVITY = 1;
@@ -27,6 +28,18 @@ Player player;
 ArrayList<BasicEnemy> enemies;
 ArrayList<Projectile> projectiles;
 ArrayList<PowerUp> powerUps;
+
+// Checkpoint variables
+ArrayList<Checkpoint> checkpoints;
+Checkpoint currentCheckpoint = null;
+
+// Checkpoint positions - add more as needed
+float[][] checkpointPositions = {
+  {450, GROUND_LEVEL},    // Near first platform
+  {1000, GROUND_LEVEL},   // Middle of level
+  {1800, 250},            // On high platform
+  {2200, GROUND_LEVEL}    // Near end of level
+};
 
 // Gap variables
 float gapX = 250;
@@ -96,6 +109,12 @@ void setup() {
   powerUps.add(new AmmoPowerUp(1150, 300 - 20));
   powerUps.add(new AmmoPowerUp(1850, 250 - 20));
   powerUps.add(new AmmoPowerUp(2150, 350 - 20));
+  
+  // Initialize checkpoints
+  checkpoints = new ArrayList<Checkpoint>();
+  for (int i = 0; i < checkpointPositions.length; i++) {
+    checkpoints.add(new Checkpoint(checkpointPositions[i][0], checkpointPositions[i][1]));
+  }
   
   PFont font = createFont("Arial", 16);
   textFont(font);
@@ -188,6 +207,18 @@ void playGame() {
          y += spacing) {
       line(additionalLadders[i][0], y, 
            additionalLadders[i][0] + additionalLadders[i][2], y);
+    }
+  }
+
+  // Update and display checkpoints
+  for (Checkpoint checkpoint : checkpoints) {
+    checkpoint.update();
+    checkpoint.display();
+    
+    // Check collision with player
+    if (checkpoint.collidesWith(player)) {
+      checkpoint.activate(player);
+      currentCheckpoint = checkpoint;
     }
   }
 
@@ -329,6 +360,13 @@ void resetGame() {
   powerUps.add(new AmmoPowerUp(1150, 300 - 20));
   powerUps.add(new AmmoPowerUp(1850, 250 - 20));
   powerUps.add(new AmmoPowerUp(2150, 350 - 20));
+  
+  // Reset checkpoints
+  checkpoints = new ArrayList<Checkpoint>();
+  for (int i = 0; i < checkpointPositions.length; i++) {
+    checkpoints.add(new Checkpoint(checkpointPositions[i][0], checkpointPositions[i][1]));
+  }
+  currentCheckpoint = null;
 }
 
 // Start a new game
